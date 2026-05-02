@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passport Photo Pro - 100% Free AI</title>
+    <title>Passport Photo Pro - Studio AI</title>
     
     <!-- jsPDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Free AI Library (Direct Load) -->
-    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/imgly-background-removal.iife.min.js"></script>
 
     <style>
         :root { --bg-color: #f4f6f8; --panel-bg: #ffffff; --text-color: #333333; --primary-color: #2563eb; --primary-hover: #1d4ed8; --secondary-color: #10b981; --danger-color: #ef4444; --border-color: #e5e7eb; }
@@ -54,7 +51,7 @@
 
     <div class="app-container">
         <header>
-            <div class="logo">📸 Passport Photo Pro <span>100% Free AI</span></div>
+            <div class="logo">📸 Passport Photo Pro <span>Live AI Edition</span></div>
             <button id="themeToggle" class="btn outline">Toggle Dark Mode</button>
         </header>
 
@@ -74,6 +71,7 @@
                         <option value="4">4 Copies</option>
                         <option value="8" selected>8 Copies</option>
                         <option value="16">16 Copies</option>
+                        <option value="32">32 Copies</option>
                     </select>
 
                     <label style="display:block; margin-top:15px;">Background Color</label>
@@ -92,7 +90,7 @@
                     <input type="range" id="contrast" min="50" max="150" value="100">
                 </section>
                 
-                <button id="btnGeneratePDF" class="btn primary full-width" disabled>🖨️ Generate & Print</button>
+                <button id="btnGeneratePDF" class="btn primary full-width" disabled>🖨️ Generate & Print PDF</button>
             </aside>
 
             <main class="preview-panel">
@@ -117,8 +115,8 @@
 
     <div id="loader" class="loader-overlay hidden">
         <div class="spinner"></div>
-        <h2 id="loaderText">Processing... Please wait.</h2>
-        <p class="loader-note">Downloading AI Model. Please keep your internet ON.</p>
+        <h2 id="loaderText">Processing...</h2>
+        <p class="loader-note">Downloading AI Model (10-15 sec). Next photos will be instant!</p>
     </div>
 
     <script>
@@ -218,23 +216,29 @@
 
             document.getElementById('fileInput').addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-            // AI BACKGROUND REMOVAL LOGIC
+            // 🔥 SUPER POWERFUL DYNAMIC IMPORT FOR NETLIFY 🔥
             document.getElementById('btnRemoveBg').addEventListener('click', async () => {
-                // Check if Android file:/// is blocking the AI
-                if (typeof imglyRemoveBackground === 'undefined') {
-                    alert("⚠️ ব্রাউজার সিকিউরিটি এলার্ট!\n\nআপনি ফাইল ম্যানেজার (file:///) থেকে ওপেন করেছেন, তাই অ্যান্ড্রয়েড AI ডাউনলোড ব্লক করে দিয়েছে।\n\nসমাধান: Play Store থেকে 'Live Server' অ্যাপ নামিয়ে এটি ওপেন করুন অথবা Netlify তে আপলোড করুন।");
-                    return;
-                }
-
                 try {
-                    showLoader("AI is cutting the background (~15s)...");
-                    const aiConfig = { publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/' };
-                    const blobData = await imglyRemoveBackground(originalFile, aiConfig);
+                    showLoader("Downloading AI Engine... (First time only)");
+                    
+                    // This is the correct, official way to load the AI on a live website
+                    const aiModule = await import('https://unpkg.com/@imgly/background-removal@1.4.5/dist/imgly-background-removal.esm.js');
+                    const removeBgFree = aiModule.default;
+
+                    showLoader("AI is magically cutting the background... ✨");
+                    
+                    const aiConfig = { 
+                        publicPath: 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/' 
+                    };
+                    
+                    const blobData = await removeBgFree(originalFile, aiConfig);
                     await processor.loadImage(blobData);
+                    
                     hideLoader();
                 } catch (error) {
                     hideLoader();
-                    alert("Error: ইন্টারনেট কানেকশন চেক করুন এবং আবার চেষ্টা করুন।");
+                    console.error(error);
+                    alert("❌ Error connecting to AI. \n\nPlease make sure your internet is working properly and try again.");
                 }
             });
 
