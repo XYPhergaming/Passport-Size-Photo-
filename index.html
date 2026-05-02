@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passport Photo Pro - 100% Free Studio Edition</title>
-    <!-- jsPDF Library for generating PDF -->
+    <title>Passport Photo Pro - 100% Free AI</title>
+    
+    <!-- jsPDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        /* =========================================
-           CSS STYLES 
-           ========================================= */
+        /* CSS STYLES */
         :root {
             --bg-color: #f4f6f8;
             --panel-bg: #ffffff;
@@ -60,7 +59,7 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .full-width { width: 100%; padding: 15px; font-size: 16px; }
 
-        .drop-zone { border: 2px dashed var(--primary-color); border-radius: 10px; padding: 50px; text-align: center; cursor: pointer; background: var(--panel-bg); transition: 0.3s; }
+        .drop-zone { display: block; border: 2px dashed var(--primary-color); border-radius: 10px; padding: 50px; text-align: center; cursor: pointer; background: var(--panel-bg); transition: 0.3s; margin-bottom: 20px; }
         .drop-zone:hover { background: rgba(37, 99, 235, 0.05); }
         .drop-zone p { font-size: 18px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;}
         .drop-zone span { font-size: 14px; color: var(--text-color); font-weight: normal; }
@@ -71,12 +70,11 @@
         .preview-container h3 { margin-bottom: 15px; color: var(--text-color); }
         canvas { max-width: 100%; height: auto; border: 1px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAhgZGRkZ/v//z4BVAxXQoJGMg4ZGBgYARhQKC/a14rAAAAAASUVORK5CYII='); }
 
-        /* Loader Overlay */
         .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: white; text-align: center; }
         .loader-overlay.hidden { display: none; }
         .spinner { width: 50px; height: 50px; border: 5px solid #fff; border-top: 5px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loader-note { font-size: 12px; color: #aaa; margin-top: 10px; max-width: 300px; }
+        .loader-note { font-size: 14px; color: #aaa; margin-top: 10px; max-width: 400px; }
 
         @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
     </style>
@@ -90,7 +88,6 @@
         </header>
 
         <div class="main-content">
-            <!-- Left Sidebar -->
             <aside class="controls-panel">
                 <section class="panel-section">
                     <h3>🛒 Order Info</h3>
@@ -128,13 +125,12 @@
                 <button id="btnGeneratePDF" class="btn primary full-width" disabled>🖨️ Generate & Print</button>
             </aside>
 
-            <!-- Right Main Area -->
             <main class="preview-panel">
-                <div id="dropZone" class="drop-zone">
-                    <p>Drag & Drop Photo Here</p>
-                    <span>or click to browse from computer</span>
-                    <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" hidden>
-                </div>
+                <label for="fileInput" id="dropZone" class="drop-zone">
+                    <p>Click & Select Photo Here</p>
+                    <span>or Drag & Drop photo from computer</span>
+                </label>
+                <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" hidden>
 
                 <div class="action-buttons">
                     <button id="btnRemoveBg" class="btn secondary" disabled>✨ Auto Remove Background (Free AI)</button>
@@ -152,18 +148,11 @@
     <!-- Loading UI -->
     <div id="loader" class="loader-overlay hidden">
         <div class="spinner"></div>
-        <p id="loaderText">Processing... Please wait.</p>
-        <p class="loader-note">Note: First time AI background removal takes 10-15 seconds to load the model. Next photos will be instant!</p>
+        <h2 id="loaderText">Processing... Please wait.</h2>
+        <p class="loader-note">Note: Processing AI takes 10-15 seconds. Please do not close the window.</p>
     </div>
 
-    <!-- JAVASCRIPT LOGIC (Using module to import Free AI) -->
-    <script type="module">
-        // Import 100% Free Browser-based AI Background Removal tool
-        import imglyRemoveBackground from "https://unpkg.com/@imgly/background-removal@1.4.5/dist/imgly-background-removal.esm.js";
-
-        /* =========================================
-           1. CONFIGURATION
-           ========================================= */
+    <script>
         const CONFIG = {
             PHOTO_WIDTH_MM: 35,
             PHOTO_HEIGHT_MM: 45,
@@ -172,23 +161,6 @@
             SHOP_NAME: "Studio Passport Pro"
         };
 
-        /* =========================================
-           2. FREE AI BACKGROUND REMOVAL (No API Key needed)
-           ========================================= */
-        async function removeBackgroundFree(imageFile) {
-            // Configuration for fetching the AI model files directly from UNPKG
-            const aiConfig = {
-                publicPath: 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/'
-            };
-
-            // This processes the image fully inside the user's browser!
-            const imageBlob = await imglyRemoveBackground(imageFile, aiConfig);
-            return imageBlob;
-        }
-
-        /* =========================================
-           3. IMAGE PROCESSOR (Canvas & Crop)
-           ========================================= */
         class ImageProcessor {
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId);
@@ -232,7 +204,6 @@
 
                 this.ctx.fillStyle = this.bgColor;
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
                 this.ctx.filter = `brightness(${this.brightness}%) contrast(${this.contrast}%) saturate(105%)`;
 
                 const imgRatio = this.currentImage.width / this.currentImage.height;
@@ -261,9 +232,6 @@
             }
         }
 
-        /* =========================================
-           4. PDF GENERATOR (Layout & Print)
-           ========================================= */
         function generateStudioPDF(imageDataUrl, copies, orderInfo) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -302,9 +270,6 @@
             window.open(doc.output('bloburl'), '_blank');
         }
 
-        /* =========================================
-           5. APP MAIN LOGIC & EVENTS
-           ========================================= */
         document.addEventListener('DOMContentLoaded', () => {
             const processor = new ImageProcessor('photoCanvas');
             let originalFile = null;
@@ -316,9 +281,8 @@
             const previewContainer = document.getElementById('previewContainer');
             const loader = document.getElementById('loader');
             const loaderText = document.getElementById('loaderText');
-            const orderIdInput = document.getElementById('orderId');
-
-            orderIdInput.value = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+            
+            document.getElementById('orderId').value = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
 
             document.getElementById('themeToggle').addEventListener('click', () => {
                 document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -337,26 +301,41 @@
                 await processor.loadImage(file);
             };
 
-            dropZone.addEventListener('click', () => fileInput.click());
             dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#10b981'; });
-            dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#2563eb');
+            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.borderColor = '#2563eb'; });
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.style.borderColor = '#2563eb';
-                handleFile(e.dataTransfer.files[0]);
+                if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
             });
-            fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+            
+            fileInput.addEventListener('change', (e) => {
+                if(e.target.files.length > 0) handleFile(e.target.files[0]);
+            });
 
-            // Remove Background Action (Using Free Library)
+            // FIXED: DYNAMIC IMPORT AI SYSTEM
             btnRemoveBg.addEventListener('click', async () => {
                 try {
-                    showLoader("Removing Background via AI... Please wait.");
-                    const blobData = await removeBackgroundFree(originalFile);
+                    showLoader("Downloading AI Model... Please wait.");
+                    
+                    // 1. Dynamic Import prevents the "not defined" error
+                    const module = await import('https://unpkg.com/@imgly/background-removal@1.4.5/dist/imgly-background-removal.esm.js');
+                    const imglyRemoveBackground = module.default;
+
+                    showLoader("Processing Background with AI...");
+                    
+                    // 2. Configuration for fetching AI files
+                    const aiConfig = {
+                        publicPath: 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/'
+                    };
+
+                    // 3. Remove Background
+                    const blobData = await imglyRemoveBackground(originalFile, aiConfig);
                     await processor.loadImage(blobData);
                     hideLoader();
                 } catch (error) {
                     hideLoader();
-                    alert("Background removal failed! Make sure you are connected to the internet.");
+                    alert("⚠️ Error! AI could not run.\n\nReason: Browsers block AI models if you open this directly from File Manager (file:///).\n\nSolution: Please run it via HopWeb's Play button, or upload it to Netlify to get a working link.");
                     console.error(error);
                 }
             });
@@ -369,11 +348,7 @@
                 });
             });
 
-            const updateFilters = () => {
-                const b = document.getElementById('brightness').value;
-                const c = document.getElementById('contrast').value;
-                processor.setEnhancements(b, c);
-            };
+            const updateFilters = () => { processor.setEnhancements(document.getElementById('brightness').value, document.getElementById('contrast').value); };
             document.getElementById('brightness').addEventListener('input', updateFilters);
             document.getElementById('contrast').addEventListener('input', updateFilters);
 
@@ -381,11 +356,10 @@
                 const dataUrl = processor.getFinalDataURL();
                 const copies = parseInt(document.getElementById('copyCount').value);
                 const orderInfo = {
-                    id: orderIdInput.value,
+                    id: document.getElementById('orderId').value,
                     name: document.getElementById('customerName').value,
                     phone: document.getElementById('customerPhone').value
                 };
-                
                 generateStudioPDF(dataUrl, copies, orderInfo);
             });
 
