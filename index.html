@@ -3,28 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passport Photo Pro - Studio AI</title>
-    
-    <!-- jsPDF Library -->
+    <title>Passport Photo Pro - 100% Free Studio Edition</title>
+    <!-- jsPDF Library for generating PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        :root { --bg-color: #f4f6f8; --panel-bg: #ffffff; --text-color: #333333; --primary-color: #2563eb; --primary-hover: #1d4ed8; --secondary-color: #10b981; --danger-color: #ef4444; --border-color: #e5e7eb; }
-        [data-theme="dark"] { --bg-color: #111827; --panel-bg: #1f2937; --text-color: #f9fafb; --border-color: #374151; }
+        /* =========================================
+           CSS STYLES 
+           ========================================= */
+        :root {
+            --bg-color: #f4f6f8;
+            --panel-bg: #ffffff;
+            --text-color: #333333;
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --border-color: #e5e7eb;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #111827;
+            --panel-bg: #1f2937;
+            --text-color: #f9fafb;
+            --border-color: #374151;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s; }
+
         .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
         header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
         header .logo { font-size: 24px; font-weight: bold; }
         header .logo span { color: var(--secondary-color); font-size: 14px; margin-left: 10px; padding: 3px 8px; border-radius: 5px; background: rgba(16, 185, 129, 0.1); }
+
         .main-content { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+
         .panel-section { background: var(--panel-bg); padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); }
         .panel-section h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+
         input[type="text"], input[type="tel"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); }
         input[type="range"] { width: 100%; margin: 10px 0; }
+
         .color-picker { display: flex; gap: 10px; margin-top: 10px; }
         .color-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; }
+        .color-btn:hover { transform: scale(1.1); }
         .color-btn.active { border: 3px solid #888 !important; }
+
         .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
         .btn.primary { background: var(--primary-color); color: #fff; }
         .btn.primary:hover { background: var(--primary-hover); }
@@ -33,17 +59,25 @@
         .btn.outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .full-width { width: 100%; padding: 15px; font-size: 16px; }
-        .drop-zone { display: block; border: 2px dashed var(--primary-color); border-radius: 10px; padding: 50px; text-align: center; cursor: pointer; background: var(--panel-bg); transition: 0.3s; margin-bottom: 20px; }
+
+        .drop-zone { border: 2px dashed var(--primary-color); border-radius: 10px; padding: 50px; text-align: center; cursor: pointer; background: var(--panel-bg); transition: 0.3s; }
+        .drop-zone:hover { background: rgba(37, 99, 235, 0.05); }
         .drop-zone p { font-size: 18px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;}
         .drop-zone span { font-size: 14px; color: var(--text-color); font-weight: normal; }
+
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        
         .preview-container { margin-top: 20px; background: var(--panel-bg); padding: 20px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
+        .preview-container h3 { margin-bottom: 15px; color: var(--text-color); }
         canvas { max-width: 100%; height: auto; border: 1px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAhgZGRkZ/v//z4BVAxXQoJGMg4ZGBgYARhQKC/a14rAAAAAASUVORK5CYII='); }
+
+        /* Loader Overlay */
         .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: white; text-align: center; }
         .loader-overlay.hidden { display: none; }
         .spinner { width: 50px; height: 50px; border: 5px solid #fff; border-top: 5px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loader-note { font-size: 14px; color: #aaa; margin-top: 10px; max-width: 400px; }
+        .loader-note { font-size: 12px; color: #aaa; margin-top: 10px; max-width: 300px; }
+
         @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -51,11 +85,12 @@
 
     <div class="app-container">
         <header>
-            <div class="logo">📸 Passport Photo Pro <span>Live AI Edition</span></div>
+            <div class="logo">📸 Passport Photo Pro <span>100% Free AI</span></div>
             <button id="themeToggle" class="btn outline">Toggle Dark Mode</button>
         </header>
 
         <div class="main-content">
+            <!-- Left Sidebar -->
             <aside class="controls-panel">
                 <section class="panel-section">
                     <h3>🛒 Order Info</h3>
@@ -90,15 +125,16 @@
                     <input type="range" id="contrast" min="50" max="150" value="100">
                 </section>
                 
-                <button id="btnGeneratePDF" class="btn primary full-width" disabled>🖨️ Generate & Print PDF</button>
+                <button id="btnGeneratePDF" class="btn primary full-width" disabled>🖨️ Generate & Print</button>
             </aside>
 
+            <!-- Right Main Area -->
             <main class="preview-panel">
-                <label for="fileInput" id="dropZone" class="drop-zone">
-                    <p>Click & Select Photo Here</p>
-                    <span>or Drag & Drop photo from computer</span>
-                </label>
-                <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" hidden>
+                <div id="dropZone" class="drop-zone">
+                    <p>Drag & Drop Photo Here</p>
+                    <span>or click to browse from computer</span>
+                    <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" hidden>
+                </div>
 
                 <div class="action-buttons">
                     <button id="btnRemoveBg" class="btn secondary" disabled>✨ Auto Remove Background (Free AI)</button>
@@ -113,27 +149,57 @@
         </div>
     </div>
 
+    <!-- Loading UI -->
     <div id="loader" class="loader-overlay hidden">
         <div class="spinner"></div>
-        <h2 id="loaderText">Processing...</h2>
-        <p class="loader-note">Downloading AI Model (10-15 sec). Next photos will be instant!</p>
+        <p id="loaderText">Processing... Please wait.</p>
+        <p class="loader-note">Note: First time AI background removal takes 10-15 seconds to load the model. Next photos will be instant!</p>
     </div>
 
-    <script>
+    <!-- JAVASCRIPT LOGIC (Using module to import Free AI) -->
+    <script type="module">
+        // Import 100% Free Browser-based AI Background Removal tool
+        import imglyRemoveBackground from "https://unpkg.com/@imgly/background-removal@1.4.5/dist/imgly-background-removal.esm.js";
+
+        /* =========================================
+           1. CONFIGURATION
+           ========================================= */
         const CONFIG = {
-            PHOTO_WIDTH_MM: 35, PHOTO_HEIGHT_MM: 45,
-            CANVAS_WIDTH: 413, CANVAS_HEIGHT: 531, 
+            PHOTO_WIDTH_MM: 35,
+            PHOTO_HEIGHT_MM: 45,
+            CANVAS_WIDTH: 413,  
+            CANVAS_HEIGHT: 531, 
             SHOP_NAME: "Studio Passport Pro"
         };
 
+        /* =========================================
+           2. FREE AI BACKGROUND REMOVAL (No API Key needed)
+           ========================================= */
+        async function removeBackgroundFree(imageFile) {
+            // Configuration for fetching the AI model files directly from UNPKG
+            const aiConfig = {
+                publicPath: 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/'
+            };
+
+            // This processes the image fully inside the user's browser!
+            const imageBlob = await imglyRemoveBackground(imageFile, aiConfig);
+            return imageBlob;
+        }
+
+        /* =========================================
+           3. IMAGE PROCESSOR (Canvas & Crop)
+           ========================================= */
         class ImageProcessor {
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId);
                 this.ctx = this.canvas.getContext('2d');
                 this.canvas.width = CONFIG.CANVAS_WIDTH;
                 this.canvas.height = CONFIG.CANVAS_HEIGHT;
-                this.currentImage = null; this.bgColor = '#FFFFFF';
-                this.brightness = 100; this.contrast = 100;
+                
+                this.currentImage = null;
+                this.bgColor = '#FFFFFF';
+                this.brightness = 100;
+                this.contrast = 100;
             }
 
             async loadImage(fileOrBlob) {
@@ -150,95 +216,148 @@
                 });
             }
 
-            setBgColor(color) { this.bgColor = color; this.render(); }
-            setEnhancements(b, c) { this.brightness = b; this.contrast = c; this.render(); }
+            setBgColor(color) {
+                this.bgColor = color;
+                this.render();
+            }
+
+            setEnhancements(brightness, contrast) {
+                this.brightness = brightness;
+                this.contrast = contrast;
+                this.render();
+            }
 
             render() {
                 if (!this.currentImage) return;
+
                 this.ctx.fillStyle = this.bgColor;
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
                 this.ctx.filter = `brightness(${this.brightness}%) contrast(${this.contrast}%) saturate(105%)`;
 
                 const imgRatio = this.currentImage.width / this.currentImage.height;
                 const canvasRatio = this.canvas.width / this.canvas.height;
+                
                 let drawWidth, drawHeight, offsetX, offsetY;
 
                 if (imgRatio > canvasRatio) {
                     drawHeight = this.canvas.height;
                     drawWidth = this.currentImage.width * (this.canvas.height / this.currentImage.height);
-                    offsetX = (this.canvas.width - drawWidth) / 2; offsetY = 0;
+                    offsetX = (this.canvas.width - drawWidth) / 2;
+                    offsetY = 0;
                 } else {
                     drawWidth = this.canvas.width;
                     drawHeight = this.currentImage.height * (this.canvas.width / this.currentImage.width);
-                    offsetX = 0; offsetY = (this.canvas.height - drawHeight) / 5;
+                    offsetX = 0;
+                    offsetY = (this.canvas.height - drawHeight) / 5;
                 }
+
                 this.ctx.drawImage(this.currentImage, offsetX, offsetY, drawWidth, drawHeight);
                 this.ctx.filter = 'none'; 
             }
-            getFinalDataURL() { return this.canvas.toDataURL('image/jpeg', 1.0); }
+
+            getFinalDataURL() {
+                return this.canvas.toDataURL('image/jpeg', 1.0);
+            }
         }
 
+        /* =========================================
+           4. PDF GENERATOR (Layout & Print)
+           ========================================= */
         function generateStudioPDF(imageDataUrl, copies, orderInfo) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const margin = 10, spacing = 4, w = CONFIG.PHOTO_WIDTH_MM, h = CONFIG.PHOTO_HEIGHT_MM;
 
-            doc.setFontSize(10); doc.setTextColor(150);
+            const pageWidth = 210;
+            const margin = 10;
+            const spacing = 4;
+            const w = CONFIG.PHOTO_WIDTH_MM;
+            const h = CONFIG.PHOTO_HEIGHT_MM;
+
+            doc.setFontSize(10);
+            doc.setTextColor(150);
             doc.text(`${CONFIG.SHOP_NAME} - Order ID: ${orderInfo.id} | Date: ${new Date().toLocaleDateString()}`, margin, margin);
-            let currentX = margin, currentY = margin + 10;
+            if(orderInfo.name) {
+                doc.text(`Customer: ${orderInfo.name} (${orderInfo.phone})`, margin, margin + 5);
+            }
+
+            let currentX = margin;
+            let currentY = margin + 10;
             
             for (let i = 0; i < copies; i++) {
-                doc.setDrawColor(200); doc.setLineWidth(0.1); doc.rect(currentX, currentY, w, h); 
+                doc.setDrawColor(200);
+                doc.setLineWidth(0.1);
+                doc.rect(currentX, currentY, w, h); 
                 doc.addImage(imageDataUrl, 'JPEG', currentX, currentY, w, h); 
+
                 currentX += (w + spacing);
-                if (currentX + w > 210 - margin) { currentX = margin; currentY += (h + spacing); }
+
+                if (currentX + w > pageWidth - margin) {
+                    currentX = margin;
+                    currentY += (h + spacing);
+                }
             }
-            doc.autoPrint(); window.open(doc.output('bloburl'), '_blank');
+
+            doc.autoPrint();
+            window.open(doc.output('bloburl'), '_blank');
         }
 
+        /* =========================================
+           5. APP MAIN LOGIC & EVENTS
+           ========================================= */
         document.addEventListener('DOMContentLoaded', () => {
             const processor = new ImageProcessor('photoCanvas');
             let originalFile = null;
 
-            document.getElementById('orderId').value = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-            document.getElementById('themeToggle').addEventListener('click', () => { document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark'; });
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const btnRemoveBg = document.getElementById('btnRemoveBg');
+            const btnGeneratePDF = document.getElementById('btnGeneratePDF');
+            const previewContainer = document.getElementById('previewContainer');
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            const orderIdInput = document.getElementById('orderId');
+
+            orderIdInput.value = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+            });
 
             const handleFile = async (file) => {
-                if (!file || !file.type.startsWith('image/')) return;
+                if (!file || !file.type.startsWith('image/')) return alert('Please upload a valid image file.');
                 originalFile = file;
-                document.getElementById('dropZone').style.display = 'none';
-                document.getElementById('previewContainer').style.display = 'block';
-                document.getElementById('btnRemoveBg').disabled = false;
-                document.getElementById('btnGeneratePDF').disabled = false;
+                
+                dropZone.style.display = 'none';
+                previewContainer.style.display = 'block';
+                btnRemoveBg.disabled = false;
+                btnGeneratePDF.disabled = false;
                 document.getElementById('btnReset').style.display = 'inline-block';
+
                 await processor.loadImage(file);
             };
 
-            document.getElementById('fileInput').addEventListener('change', (e) => handleFile(e.target.files[0]));
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#10b981'; });
+            dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#2563eb');
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#2563eb';
+                handleFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-            // 🔥 SUPER POWERFUL DYNAMIC IMPORT FOR NETLIFY 🔥
-            document.getElementById('btnRemoveBg').addEventListener('click', async () => {
+            // Remove Background Action (Using Free Library)
+            btnRemoveBg.addEventListener('click', async () => {
                 try {
-                    showLoader("Downloading AI Engine... (First time only)");
-                    
-                    // This is the correct, official way to load the AI on a live website
-                    const aiModule = await import('https://unpkg.com/@imgly/background-removal@1.4.5/dist/imgly-background-removal.esm.js');
-                    const removeBgFree = aiModule.default;
-
-                    showLoader("AI is magically cutting the background... ✨");
-                    
-                    const aiConfig = { 
-                        publicPath: 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/' 
-                    };
-                    
-                    const blobData = await removeBgFree(originalFile, aiConfig);
+                    showLoader("Removing Background via AI... Please wait.");
+                    const blobData = await removeBackgroundFree(originalFile);
                     await processor.loadImage(blobData);
-                    
                     hideLoader();
                 } catch (error) {
                     hideLoader();
+                    alert("Background removal failed! Make sure you are connected to the internet.");
                     console.error(error);
-                    alert("❌ Error connecting to AI. \n\nPlease make sure your internet is working properly and try again.");
                 }
             });
 
@@ -250,19 +369,30 @@
                 });
             });
 
-            const updateFilters = () => processor.setEnhancements(document.getElementById('brightness').value, document.getElementById('contrast').value);
+            const updateFilters = () => {
+                const b = document.getElementById('brightness').value;
+                const c = document.getElementById('contrast').value;
+                processor.setEnhancements(b, c);
+            };
             document.getElementById('brightness').addEventListener('input', updateFilters);
             document.getElementById('contrast').addEventListener('input', updateFilters);
 
-            document.getElementById('btnGeneratePDF').addEventListener('click', () => {
-                const orderInfo = { id: document.getElementById('orderId').value };
-                generateStudioPDF(processor.getFinalDataURL(), parseInt(document.getElementById('copyCount').value), orderInfo);
+            btnGeneratePDF.addEventListener('click', () => {
+                const dataUrl = processor.getFinalDataURL();
+                const copies = parseInt(document.getElementById('copyCount').value);
+                const orderInfo = {
+                    id: orderIdInput.value,
+                    name: document.getElementById('customerName').value,
+                    phone: document.getElementById('customerPhone').value
+                };
+                
+                generateStudioPDF(dataUrl, copies, orderInfo);
             });
 
             document.getElementById('btnReset').addEventListener('click', () => location.reload());
 
-            function showLoader(msg) { document.getElementById('loaderText').innerText = msg; document.getElementById('loader').classList.remove('hidden'); }
-            function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
+            function showLoader(msg) { loaderText.innerText = msg; loader.classList.remove('hidden'); }
+            function hideLoader() { loader.classList.add('hidden'); }
         });
     </script>
 </body>
