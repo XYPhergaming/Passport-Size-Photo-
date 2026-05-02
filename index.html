@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passport Photo Pro - 100% Free AI</title>
+    
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Free AI Library (Direct Load) -->
+    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/imgly-background-removal.iife.min.js"></script>
+
+    <style>
+        :root { --bg-color: #f4f6f8; --panel-bg: #ffffff; --text-color: #333333; --primary-color: #2563eb; --primary-hover: #1d4ed8; --secondary-color: #10b981; --danger-color: #ef4444; --border-color: #e5e7eb; }
+        [data-theme="dark"] { --bg-color: #111827; --panel-bg: #1f2937; --text-color: #f9fafb; --border-color: #374151; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s; }
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        header .logo { font-size: 24px; font-weight: bold; }
+        header .logo span { color: var(--secondary-color); font-size: 14px; margin-left: 10px; padding: 3px 8px; border-radius: 5px; background: rgba(16, 185, 129, 0.1); }
+        .main-content { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .panel-section { background: var(--panel-bg); padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+        .panel-section h3 { margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        input[type="text"], input[type="tel"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); }
+        input[type="range"] { width: 100%; margin: 10px 0; }
+        .color-picker { display: flex; gap: 10px; margin-top: 10px; }
+        .color-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; }
+        .color-btn.active { border: 3px solid #888 !important; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn.primary { background: var(--primary-color); color: #fff; }
+        .btn.primary:hover { background: var(--primary-hover); }
+        .btn.secondary { background: var(--secondary-color); color: #fff; }
+        .btn.danger { background: var(--danger-color); color: #fff; }
+        .btn.outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .full-width { width: 100%; padding: 15px; font-size: 16px; }
+        .drop-zone { display: block; border: 2px dashed var(--primary-color); border-radius: 10px; padding: 50px; text-align: center; cursor: pointer; background: var(--panel-bg); transition: 0.3s; margin-bottom: 20px; }
+        .drop-zone p { font-size: 18px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;}
+        .drop-zone span { font-size: 14px; color: var(--text-color); font-weight: normal; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .preview-container { margin-top: 20px; background: var(--panel-bg); padding: 20px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
+        canvas { max-width: 100%; height: auto; border: 1px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAhgZGRkZ/v//z4BVAxXQoJGMg4ZGBgYARhQKC/a14rAAAAAASUVORK5CYII='); }
+        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: white; text-align: center; }
+        .loader-overlay.hidden { display: none; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #fff; border-top: 5px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-note { font-size: 14px; color: #aaa; margin-top: 10px; max-width: 400px; }
+        @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">📸 Passport Photo Pro <span>100% Free AI</span></div>
+            <button id="themeToggle" class="btn outline">Toggle Dark Mode</button>
+        </header>
+
+        <div class="main-content">
+            <aside class="controls-panel">
+                <section class="panel-section">
+                    <h3>🛒 Order Info</h3>
+                    <input type="text" id="orderId" placeholder="Order ID" readonly>
+                    <input type="text" id="customerName" placeholder="Customer Name (Optional)">
+                    <input type="tel" id="customerPhone" placeholder="Phone Number (Optional)">
+                </section>
+
+                <section class="panel-section">
+                    <h3>⚙️ Layout Settings</h3>
+                    <label>Copies per A4 Page</label>
+                    <select id="copyCount">
+                        <option value="4">4 Copies</option>
+                        <option value="8" selected>8 Copies</option>
+                        <option value="16">16 Copies</option>
+                    </select>
+
+                    <label style="display:block; margin-top:15px;">Background Color</label>
+                    <div class="color-picker">
+                        <div class="color-btn active" data-color="#FFFFFF" style="background: #FFFFFF; border: 1px solid #ccc;"></div>
+                        <div class="color-btn" data-color="#1E88E5" style="background: #1E88E5;"></div>
+                        <div class="color-btn" data-color="#E53935" style="background: #E53935;"></div>
+                    </div>
+                </section>
+
+                <section class="panel-section">
+                    <h3>🎛️ Photo Enhancement</h3>
+                    <label>Brightness</label>
+                    <input type="range" id="brightness" min="50" max="150" value="100">
+                    <label>Contrast</label>
+                    <input type="range" id="contrast" min="50" max="150" value="100">
+                </section>
+                
+                <button id="btnGeneratePDF" class="btn primary full-width" disabled>🖨️ Generate & Print</button>
+            </aside>
+
+            <main class="preview-panel">
+                <label for="fileInput" id="dropZone" class="drop-zone">
+                    <p>Click & Select Photo Here</p>
+                    <span>or Drag & Drop photo from computer</span>
+                </label>
+                <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" hidden>
+
+                <div class="action-buttons">
+                    <button id="btnRemoveBg" class="btn secondary" disabled>✨ Auto Remove Background (Free AI)</button>
+                    <button id="btnReset" class="btn danger" style="display:none;">Upload New Photo</button>
+                </div>
+
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <h3>Preview (Auto Cropped: 35mm x 45mm)</h3>
+                    <canvas id="photoCanvas"></canvas>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <h2 id="loaderText">Processing... Please wait.</h2>
+        <p class="loader-note">Downloading AI Model. Please keep your internet ON.</p>
+    </div>
+
+    <script>
+        const CONFIG = {
+            PHOTO_WIDTH_MM: 35, PHOTO_HEIGHT_MM: 45,
+            CANVAS_WIDTH: 413, CANVAS_HEIGHT: 531, 
+            SHOP_NAME: "Studio Passport Pro"
+        };
+
+        class ImageProcessor {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = CONFIG.CANVAS_WIDTH;
+                this.canvas.height = CONFIG.CANVAS_HEIGHT;
+                this.currentImage = null; this.bgColor = '#FFFFFF';
+                this.brightness = 100; this.contrast = 100;
+            }
+
+            async loadImage(fileOrBlob) {
+                return new Promise((resolve) => {
+                    const url = URL.createObjectURL(fileOrBlob);
+                    const img = new Image();
+                    img.onload = () => {
+                        this.currentImage = img;
+                        this.render();
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    };
+                    img.src = url;
+                });
+            }
+
+            setBgColor(color) { this.bgColor = color; this.render(); }
+            setEnhancements(b, c) { this.brightness = b; this.contrast = c; this.render(); }
+
+            render() {
+                if (!this.currentImage) return;
+                this.ctx.fillStyle = this.bgColor;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.filter = `brightness(${this.brightness}%) contrast(${this.contrast}%) saturate(105%)`;
+
+                const imgRatio = this.currentImage.width / this.currentImage.height;
+                const canvasRatio = this.canvas.width / this.canvas.height;
+                let drawWidth, drawHeight, offsetX, offsetY;
+
+                if (imgRatio > canvasRatio) {
+                    drawHeight = this.canvas.height;
+                    drawWidth = this.currentImage.width * (this.canvas.height / this.currentImage.height);
+                    offsetX = (this.canvas.width - drawWidth) / 2; offsetY = 0;
+                } else {
+                    drawWidth = this.canvas.width;
+                    drawHeight = this.currentImage.height * (this.canvas.width / this.currentImage.width);
+                    offsetX = 0; offsetY = (this.canvas.height - drawHeight) / 5;
+                }
+                this.ctx.drawImage(this.currentImage, offsetX, offsetY, drawWidth, drawHeight);
+                this.ctx.filter = 'none'; 
+            }
+            getFinalDataURL() { return this.canvas.toDataURL('image/jpeg', 1.0); }
+        }
+
+        function generateStudioPDF(imageDataUrl, copies, orderInfo) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const margin = 10, spacing = 4, w = CONFIG.PHOTO_WIDTH_MM, h = CONFIG.PHOTO_HEIGHT_MM;
+
+            doc.setFontSize(10); doc.setTextColor(150);
+            doc.text(`${CONFIG.SHOP_NAME} - Order ID: ${orderInfo.id} | Date: ${new Date().toLocaleDateString()}`, margin, margin);
+            let currentX = margin, currentY = margin + 10;
+            
+            for (let i = 0; i < copies; i++) {
+                doc.setDrawColor(200); doc.setLineWidth(0.1); doc.rect(currentX, currentY, w, h); 
+                doc.addImage(imageDataUrl, 'JPEG', currentX, currentY, w, h); 
+                currentX += (w + spacing);
+                if (currentX + w > 210 - margin) { currentX = margin; currentY += (h + spacing); }
+            }
+            doc.autoPrint(); window.open(doc.output('bloburl'), '_blank');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const processor = new ImageProcessor('photoCanvas');
+            let originalFile = null;
+
+            document.getElementById('orderId').value = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('themeToggle').addEventListener('click', () => { document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark'; });
+
+            const handleFile = async (file) => {
+                if (!file || !file.type.startsWith('image/')) return;
+                originalFile = file;
+                document.getElementById('dropZone').style.display = 'none';
+                document.getElementById('previewContainer').style.display = 'block';
+                document.getElementById('btnRemoveBg').disabled = false;
+                document.getElementById('btnGeneratePDF').disabled = false;
+                document.getElementById('btnReset').style.display = 'inline-block';
+                await processor.loadImage(file);
+            };
+
+            document.getElementById('fileInput').addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+            // AI BACKGROUND REMOVAL LOGIC
+            document.getElementById('btnRemoveBg').addEventListener('click', async () => {
+                // Check if Android file:/// is blocking the AI
+                if (typeof imglyRemoveBackground === 'undefined') {
+                    alert("⚠️ ব্রাউজার সিকিউরিটি এলার্ট!\n\nআপনি ফাইল ম্যানেজার (file:///) থেকে ওপেন করেছেন, তাই অ্যান্ড্রয়েড AI ডাউনলোড ব্লক করে দিয়েছে।\n\nসমাধান: Play Store থেকে 'Live Server' অ্যাপ নামিয়ে এটি ওপেন করুন অথবা Netlify তে আপলোড করুন।");
+                    return;
+                }
+
+                try {
+                    showLoader("AI is cutting the background (~15s)...");
+                    const aiConfig = { publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/' };
+                    const blobData = await imglyRemoveBackground(originalFile, aiConfig);
+                    await processor.loadImage(blobData);
+                    hideLoader();
+                } catch (error) {
+                    hideLoader();
+                    alert("Error: ইন্টারনেট কানেকশন চেক করুন এবং আবার চেষ্টা করুন।");
+                }
+            });
+
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    processor.setBgColor(e.target.dataset.color);
+                });
+            });
+
+            const updateFilters = () => processor.setEnhancements(document.getElementById('brightness').value, document.getElementById('contrast').value);
+            document.getElementById('brightness').addEventListener('input', updateFilters);
+            document.getElementById('contrast').addEventListener('input', updateFilters);
+
+            document.getElementById('btnGeneratePDF').addEventListener('click', () => {
+                const orderInfo = { id: document.getElementById('orderId').value };
+                generateStudioPDF(processor.getFinalDataURL(), parseInt(document.getElementById('copyCount').value), orderInfo);
+            });
+
+            document.getElementById('btnReset').addEventListener('click', () => location.reload());
+
+            function showLoader(msg) { document.getElementById('loaderText').innerText = msg; document.getElementById('loader').classList.remove('hidden'); }
+            function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
+        });
+    </script>
+</body>
+</html>
